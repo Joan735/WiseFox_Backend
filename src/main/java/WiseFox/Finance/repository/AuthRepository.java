@@ -8,8 +8,6 @@ import org.springframework.stereotype.Repository;
 import WiseFox.Finance.model.User;
 
 @Repository
-public interface FinanceRepository extends CrudRepository<User, Long> {
+public interface AuthRepository extends CrudRepository<User, Long> {
 	Optional<User> existsByEmailAndPassword(String email, String password);
-	
-	Optional<User> findByUsernameIgnoreCase(String username);
 }

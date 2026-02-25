@@ -4,20 +4,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import WiseFox.Finance.model.User;
-import WiseFox.Finance.repository.FinanceRepository;
+import WiseFox.Finance.repository.AuthRepository;
+import WiseFox.Finance.repository.UserRepository;
 
 @Service
 public class AuthService {
 	@Autowired
-	private FinanceRepository financeRepository;
+	private AuthRepository authRepository;
 
 	// REGISTER
 	public User register(User user) {
-		return financeRepository.save(user);
+		return authRepository.save(user);
 	}
 
 	// LOGIN
 	public User login(String email, String password) {
-		return financeRepository.existsByEmailAndPassword(email, password).orElse(null);
+		return authRepository.existsByEmailAndPassword(email, password).orElse(null);
 	}
 }

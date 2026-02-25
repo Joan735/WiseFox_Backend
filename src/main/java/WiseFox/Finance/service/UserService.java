@@ -6,16 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import WiseFox.Finance.model.User;
-import WiseFox.Finance.repository.FinanceRepository;
+import WiseFox.Finance.repository.UserRepository;
 
 @Service
 public class UserService {
 	@Autowired
-	private FinanceRepository financeRepository;
+	private UserRepository userRepository;
 
 	// UPDATE
 	public User update(Long id, User userData) {
-		Optional<User> existingUser = financeRepository.findById(id);
+		Optional<User> existingUser = userRepository.findById(id);
 
 		if (existingUser.isPresent()) {
 			User user = existingUser.get();
@@ -26,15 +26,15 @@ public class UserService {
 			user.setPassword(userData.getPassword());
 			user.setRole(userData.getRole());
 			user.setPfp(userData.getPfp());
-			return financeRepository.save(user);
+			return userRepository.save(user);
 		}
 		return null;
 	}
 
 	// DELETE
 	public boolean delete(Long id) {
-		if (financeRepository.existsById(id)) {
-			financeRepository.deleteById(id);
+		if (userRepository.existsById(id)) {
+			userRepository.deleteById(id);
 			return true;
 		}
 		return false;
@@ -42,7 +42,7 @@ public class UserService {
 
 	// GET BY ID
 	public User getById(Long id) {
-		return financeRepository.findById(id).orElse(null);
+		return userRepository.findById(id).orElse(null);
 	}
 
 	// GET BY USERNAME
@@ -51,6 +51,6 @@ public class UserService {
 			return null; // Returns null if username is null or empty
 		}
 		String lowerUsername = username.toLowerCase();
-		return financeRepository.findByUsernameIgnoreCase(lowerUsername).orElse(null); // Returns null if no match is found
+		return userRepository.findByUsernameIgnoreCase(lowerUsername).orElse(null); // Returns null if no match is found
 	}
 }
