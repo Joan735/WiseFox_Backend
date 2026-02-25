@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import WiseFox.Finance.model.User;
 import WiseFox.Finance.repository.AuthRepository;
-import WiseFox.Finance.repository.UserRepository;
 
 @Service
 public class AuthService {

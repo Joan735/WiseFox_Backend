@@ -1,7 +1,5 @@
 package WiseFox.Finance.service;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,47 +8,29 @@ import WiseFox.Finance.repository.UserRepository;
 
 @Service
 public class UserService {
-	@Autowired
-	private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-	// UPDATE
-	public User update(Long id, User userData) {
-		Optional<User> existingUser = userRepository.findById(id);
+    public User getById(Long id) { return userRepository.findById(id).orElse(null); }
+    
+    public User getByUsername(String username) { 
+        return userRepository.findByUsernameIgnoreCase(username).orElse(null); 
+    }
 
-		if (existingUser.isPresent()) {
-			User user = existingUser.get();
-			user.setName(userData.getName());
-			user.setSurname(userData.getSurname());
-			user.setUsername(userData.getUsername());
-			user.setEmail(userData.getEmail());
-			user.setPassword(userData.getPassword());
-			user.setRole(userData.getRole());
-			user.setPfp(userData.getPfp());
-			return userRepository.save(user);
-		}
-		return null;
-	}
+    public User update(Long id, User userDetails) {
+        return userRepository.findById(id).map(user -> {
+            user.setName(userDetails.getName());
+            user.setSurname(userDetails.getSurname());
+            user.setEmail(userDetails.getEmail());
+            return userRepository.save(user);
+        }).orElse(null);
+    }
 
-	// DELETE
-	public boolean delete(Long id) {
-		if (userRepository.existsById(id)) {
-			userRepository.deleteById(id);
-			return true;
-		}
-		return false;
-	}
-
-	// GET BY ID
-	public User getById(Long id) {
-		return userRepository.findById(id).orElse(null);
-	}
-
-	// GET BY USERNAME
-	public User getByUsername(String username) {
-		if (username == null || username.isEmpty()) {
-			return null; // Returns null if username is null or empty
-		}
-		String lowerUsername = username.toLowerCase();
-		return userRepository.findByUsernameIgnoreCase(lowerUsername).orElse(null); // Returns null if no match is found
-	}
+    public boolean delete(Long id) {
+        if (userRepository.existsById(id)) {
+            userRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
 }
