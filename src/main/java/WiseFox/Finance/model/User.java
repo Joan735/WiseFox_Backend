@@ -38,11 +38,11 @@ public class User {
 	private Role role;
 
 	@Lob
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private byte[] pfp;
 
 	public enum Role {
-		USER, ADMIN
+		USER, PREMIUM
 	}
 
 	public Long getId() {

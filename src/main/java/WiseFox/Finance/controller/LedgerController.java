@@ -16,29 +16,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 import WiseFox.Finance.model.Ledger;
 import WiseFox.Finance.model.User;
+import WiseFox.Finance.service.LedgerService;
 
 import org.apache.commons.lang3.StringUtils;
 
 @RestController
 @RequestMapping("/api/ledgers") // from url starting with
 public class LedgerController {
-	// @Autowired
-	// private LedgerService ledgerService;
+	@Autowired
+	private LedgerService ledgerService;
 
 	// Get all Ledgers
 	// GET /api/ledgers
-	/*
 	@GetMapping
 	public ResponseEntity<Iterable<Ledger>> getAllLedgers(User user) {
 		return ResponseEntity.ok(ledgerService.getMyLedgers(user.getName()));
 	}
-    */
 	
 	// Get Ledger by ID
 	// GET /api/ledgers/{id}
 	@GetMapping("/{id}")
 	public ResponseEntity<Optional<Ledger>> getLedgerById(@PathVariable Long id) {
-		Optional<Ledger> ledger = null; // ledgerService.getById(id);
+		Optional<Ledger> ledger = ledgerService.getById(id);
 		if (ledger.isPresent()) {
 			return ResponseEntity.ok(ledger);
 		}
@@ -54,7 +53,7 @@ public class LedgerController {
 			if (StringUtils.isAnyBlank(ledger.getName(), ledger.getCurrency(), ledger.getOwner().getName())) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 			}
-			Ledger createdLedger = null; // ledgerService.create(ledger);
+			Ledger createdLedger = ledgerService.create(ledger);
 			return ResponseEntity.status(HttpStatus.CREATED).body(createdLedger);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -70,7 +69,7 @@ public class LedgerController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 
-		Ledger updatedLedger = null; // ledgerService.update(id, nurse);
+		Ledger updatedLedger = ledgerService.update(id, ledger);
 		if (updatedLedger == null) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
@@ -81,20 +80,10 @@ public class LedgerController {
 	// DELETE /api/ledgers/{id}
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteLedger(@PathVariable Long id) {
-		boolean deleted = false; // ledgerService.delete(id);
+		boolean deleted = ledgerService.delete(id);
 		if (!deleted) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
 		return ResponseEntity.ok().build();
 	}
-
-	// Share Ledger
-	// POST /api/ledgers/{id}/share
-	/*
-	@PostMapping("/{id}/share")
-	public ResponseEntity<?> shareLedger(@PathVariable Long ledgerId, User user) {
-		return ResponseEntity.ok(ledgerService.share(ledgerId, user.getName()));
-	}
-	*/
-
 }

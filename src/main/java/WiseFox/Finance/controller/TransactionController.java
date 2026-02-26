@@ -15,38 +15,33 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import WiseFox.Finance.model.Transaction;
-import WiseFox.Finance.model.User;
-import org.apache.commons.lang3.StringUtils;
+import WiseFox.Finance.service.TransactionService;
 
 @RestController
 @RequestMapping("/api/ledger/{ledgerId}/transaction") // from url starting with
 public class TransactionController {
-	// @Autowired
-	// private TransactionService transactionService;
+	@Autowired
+	private TransactionService transactionService;
 
 	// Get Transactions
 	// GET /api/ledger/{ledgerId}/transactions
-	/*
 	@GetMapping
-	public ResponseEntity<Iterable<Transaction>> getAllTransactions(@PathVariable Long ledgerId, User user) {
-		return ResponseEntity.ok(transactionService.getAll(ledgerId, user.getName()));
+	public ResponseEntity<Iterable<Transaction>> getAllTransactions(@PathVariable Long ledgerId) {
+		return ResponseEntity.ok(transactionService.getAll(ledgerId));
 	}
-	*/
 	
 	// Create Transaction
 	// POST /api/ledger/{ledgerId}/transactions
-	/*
 	@PostMapping
-	public ResponseEntity<?> create(@PathVariable Long ledgerId, User user) {
-		return ResponseEntity.ok(transactionService.create(ledgerId, user.getName()));
+	public ResponseEntity<?> create(@PathVariable Long ledgerId, Transaction transaction) {
+		return ResponseEntity.ok(transactionService.create(transaction));
 	}
-	*/
 	
 	// Delete Transaction
 	// DELETE /api/ledger/{ledgerId}/transactions/{transactionId}
 	@DeleteMapping("/{transactionId}")
-	public ResponseEntity<?> delete(@PathVariable Long ledgerId, @PathVariable Long transactionId, User user) {
-		boolean deleted = false; // transactionService.delete(transactionId, user.getName());
+	public ResponseEntity<?> delete(@PathVariable Long ledgerId, @PathVariable Long transactionId) {
+		boolean deleted = transactionService.delete(transactionId);
 		if (!deleted) {
 			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 		}
