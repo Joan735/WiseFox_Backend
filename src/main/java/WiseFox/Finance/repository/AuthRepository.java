@@ -9,5 +9,8 @@ import WiseFox.Finance.model.User;
 
 @Repository
 public interface AuthRepository extends CrudRepository<User, Long> {
-	Optional<User> existsByEmailAndPassword(String email, String password);
+	Optional<User> findByEmailAndPassword(String email, String password);
+	boolean existsByEmail(String email);
+	boolean existsByUsername(String username);
+	
 }

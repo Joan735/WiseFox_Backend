@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import WiseFox.Finance.model.User;
 import WiseFox.Finance.service.AuthService;
@@ -31,6 +32,8 @@ public class AuthController {
 			}
 			User createdUser = authService.register(user);
 			return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+		} catch (ResponseStatusException e) {
+			throw e;
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
@@ -40,12 +43,15 @@ public class AuthController {
 	// POST /api/auth/login
 	@PostMapping("/login")
 	public ResponseEntity<User> loginUser(@RequestBody User user) {
-		User loginUser = authService.login(user.getEmail(), user.getPassword());
-
-		if (loginUser == null) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-		} else {
-			return ResponseEntity.status(HttpStatus.CREATED).body(loginUser);
-		}
+	    try {
+	        User loginUser = authService.login(user.getEmail(), user.getPassword());
+	        if (loginUser == null) {
+	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+	        } 
+	        return ResponseEntity.ok(loginUser);
+	    } catch (Exception e) {
+	        System.err.println("Login error: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+	    }
 	}
 }
