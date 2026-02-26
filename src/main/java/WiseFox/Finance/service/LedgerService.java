@@ -7,30 +7,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import WiseFox.Finance.model.Ledger;
-import WiseFox.Finance.model.User;
 import WiseFox.Finance.repository.LedgerRepository;
-import WiseFox.Finance.repository.UserLedgerRepository;
 
 @Service
 public class LedgerService {
-    @Autowired
-    private LedgerRepository ledgerRepository;
-    @Autowired
-    private UserLedgerRepository userLedgerRepository;
+	@Autowired
+	private LedgerRepository ledgerRepository;
 
-    public Ledger create(Ledger ledger) { return ledgerRepository.save(ledger); }
+	// GET MY LEDGERS
+	public List<Ledger> getMyLedgers(String name) {
+		return ledgerRepository.findByOwner(name);
+	}
 
-    public Optional<Ledger> getById(Long id) { return ledgerRepository.findById(id); }
+	// GET BY ID
+	public Optional<Ledger> getById(Long id) {
+		return ledgerRepository.findById(id);
+	}
 
-    public List<Ledger> getMyLedgers(User user) {
-        return ledgerRepository.findByOwner(user);
-    }
+	// CREATE
+	public Ledger create(Ledger ledger) {
+		return ledgerRepository.save(ledger);
+	}
+	
+	// UPDATE
+	public Ledger update(Long id, Ledger ledgerDetails) {
+		return ledgerRepository.findById(id).map(ledger -> {
+			ledger.setName(ledgerDetails.getName());
+			ledger.setCurrency(ledgerDetails.getCurrency());
+			ledger.setDescription(ledgerDetails.getDescription());
+			return ledgerRepository.save(ledger);
+		}).orElse(null);
+	}
 
-    public boolean delete(Long id) {
-        if (ledgerRepository.existsById(id)) {
-            ledgerRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
+	// DELETE
+	public boolean delete(Long id) {
+		if (ledgerRepository.existsById(id)) {
+			ledgerRepository.deleteById(id);
+			return true;
+		}
+		return false;
+	}
 }
