@@ -29,6 +29,7 @@ public class UserController {
 		// Verify that the data submitted is correct
 		if (StringUtils.isAnyBlank(user.getName(), user.getSurname(), user.getUsername(), user.getEmail(),
 				user.getPassword())) {
+	        System.err.println("Enter all the data");
 			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 

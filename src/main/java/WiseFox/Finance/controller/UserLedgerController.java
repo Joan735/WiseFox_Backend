@@ -40,7 +40,6 @@ public class UserLedgerController {
 	// POST /api/userledger/share
 	@PostMapping("/share")
 	public ResponseEntity<UserLedger> shareLedger(@RequestBody UserLedger userledger) {
-		
 		return ResponseEntity.ok(userledgerService.share(userledger));
 	}
 }

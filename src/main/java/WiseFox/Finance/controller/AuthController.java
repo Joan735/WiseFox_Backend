@@ -35,6 +35,7 @@ public class AuthController {
 		} catch (ResponseStatusException e) {
 			throw e;
 		} catch (Exception e) {
+			System.err.println("Register Error:" + e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 	}
@@ -50,7 +51,7 @@ public class AuthController {
 	        } 
 	        return ResponseEntity.ok(loginUser);
 	    } catch (Exception e) {
-	        System.err.println("Login error: " + e.getMessage());
+	        System.err.println("Login Error: " + e.getMessage());
 	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 	    }
 	}
