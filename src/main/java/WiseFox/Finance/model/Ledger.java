@@ -28,8 +28,8 @@ public class Ledger {
 	private String description;
 
 	@ManyToOne
-	@JoinColumn(name = "owner_id", nullable = false)
-	private User owner;
+	@JoinColumn(name = "user_id", nullable = false)
+	private User user;
 
 	public Long getId() {
 		return id;
@@ -63,11 +63,11 @@ public class Ledger {
 		this.description = description;
 	}
 
-	public User getOwner() {
-		return owner;
+	public User getUser() {
+		return user;
 	}
 
-	public void setOwner(User owner) {
-		this.owner = owner;
+	public void setUser(User user) {
+		this.user = user;
 	}
 }

@@ -30,10 +30,10 @@ public class UserLedger {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private Permission permission; // READ, WRITE
+	private Permission permission; // MEMBER, OWNER
 
 	public enum Permission {
-		READ, WRITE
+		MEMBER, OWNER
 	}
 
 	public Long getId() {

@@ -1,7 +1,10 @@
 package WiseFox.Finance.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import WiseFox.Finance.model.User;
 import WiseFox.Finance.repository.UserRepository;
@@ -12,6 +15,7 @@ public class UserService {
 	private UserRepository userRepository;
 
 	// UPDATE
+	@Transactional
 	public User update(Long id, User userDetails) {
 		return userRepository.findById(id).map(user -> {
 			user.setName(userDetails.getName());
@@ -22,7 +26,7 @@ public class UserService {
 			user.setRole(userDetails.getRole());
 			user.setPfp(userDetails.getPfp());
 			return userRepository.save(user);
-		}).orElse(null);
+		}).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot update: User not found"));
 	}
 
 	// DELETE
@@ -36,11 +40,13 @@ public class UserService {
 
 	// GET BY ID
 	public User getById(Long id) {
-		return userRepository.findById(id).orElse(null);
+		return userRepository.findById(id)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with ID: " + id));
 	}
 
 	// GET BY USERNAME
 	public User getByUsername(String username) {
-		return userRepository.findByUsernameIgnoreCase(username).orElse(null);
+		return userRepository.findByUsernameIgnoreCase(username)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with username: " + username));
 	}
 }
