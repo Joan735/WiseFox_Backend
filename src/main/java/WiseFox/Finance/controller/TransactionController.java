@@ -1,5 +1,7 @@
 package WiseFox.Finance.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import WiseFox.Finance.model.Transaction;
 import WiseFox.Finance.service.TransactionService;
@@ -23,31 +26,32 @@ public class TransactionController {
 	// Get All Transactions
 	// GET /api/transactions/{ledgerId}
 	@GetMapping("/{ledgerId}")
-	public ResponseEntity<Iterable<Transaction>> getAllTransactions(@PathVariable Long ledgerId) {
-		Iterable<Transaction> transactions = transactionService.getAll(ledgerId);
-		if (transactions == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	public ResponseEntity<List<Transaction>> getAllTransactions(@PathVariable Long ledgerId) {
+		try {
+			List<Transaction> transactions = transactionService.getAll(ledgerId);
+			return ResponseEntity.ok(transactions);
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Get all: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
-		return ResponseEntity.ok(transactions);
 	}
 
 	// Create Transaction
 	// POST /api/transactions/create
 	@PostMapping("/create")
 	public ResponseEntity<Transaction> create(@RequestBody Transaction transaction) {
+		// Basic validation
+		if (transaction.getAmount() == null || transaction.getDate() == null || transaction.getType() == null
+				|| transaction.getLedger() == null) {
+			System.err.println("Error: Enter all the data");
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		}
 		try {
-			// Basic validation
-			if (transaction.getAmount() == null || transaction.getDate() == null || transaction.getType() == null
-					|| transaction.getLedger() == null || transaction.getLedger().getUser() == null) {
-				System.err.println("Enter all the data");
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-			}
 			Transaction createdTransaction = transactionService.create(transaction);
 			return ResponseEntity.status(HttpStatus.CREATED).body(createdTransaction);
-
-		} catch (Exception e) {
-			System.err.println("Error:" + e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Create: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
 	}
 
@@ -55,10 +59,12 @@ public class TransactionController {
 	// DELETE /api/transactions/delete/{transactionId}
 	@DeleteMapping("/delete/{transactionId}")
 	public ResponseEntity<Void> delete(@PathVariable Long transactionId) {
-		boolean deleted = transactionService.delete(transactionId);
-		if (!deleted) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		try {
+			transactionService.delete(transactionId);
+			return ResponseEntity.ok().build();
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Delete: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
-		return ResponseEntity.ok().build();
 	}
 }

@@ -10,4 +10,5 @@ import WiseFox.Finance.model.User;
 @Repository
 public interface UserRepository extends CrudRepository<User, Long> {	
 	Optional<User> findByUsernameIgnoreCase(String username);
+	boolean existsById(Long id);
 }

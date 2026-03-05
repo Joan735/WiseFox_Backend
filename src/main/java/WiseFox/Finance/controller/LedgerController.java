@@ -1,6 +1,6 @@
 package WiseFox.Finance.controller;
 
-import java.util.Optional;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import WiseFox.Finance.model.Ledger;
 import WiseFox.Finance.service.LedgerService;
@@ -28,23 +29,27 @@ public class LedgerController {
 	// Get all Ledgers
 	// GET /api/ledgers/user/{user_id}
 	@GetMapping("user/{user_id}")
-	public ResponseEntity<Iterable<Ledger>> getAllLedgers(@PathVariable Long user_id) {
-		Iterable<Ledger> ledgers = ledgerService.getMyLedgers(user_id);
-		if (ledgers == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	public ResponseEntity<List<Ledger>> getAllLedgers(@PathVariable Long user_id) {
+		try {
+			List<Ledger> ledgers = ledgerService.getMyLedgers(user_id);
+			return ResponseEntity.ok(ledgers);
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Get all: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
-		return ResponseEntity.ok(ledgers);
 	}
-	
+
 	// Get Ledger by ID
 	// GET /api/ledgers/{id}
 	@GetMapping("/{id}")
-	public ResponseEntity<Optional<Ledger>> getLedgerById(@PathVariable Long id) {
-		Optional<Ledger> ledger = ledgerService.getById(id);
-		if (!ledger.isPresent()) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+	public ResponseEntity<Ledger> getLedgerById(@PathVariable Long id) {
+		try {
+			Ledger ledger = ledgerService.getById(id);
+			return ResponseEntity.ok(ledger);
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Get by id: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
-		return ResponseEntity.ok(ledger);
 	}
 
 	// Create Ledger
@@ -53,14 +58,14 @@ public class LedgerController {
 	public ResponseEntity<Ledger> createLedger(@RequestBody Ledger ledger) {
 		try {
 			// Basic validation
-			if (StringUtils.isAnyBlank(ledger.getName(), ledger.getCurrency(), ledger.getUser().getName())) {
-		        System.err.println("Enter all the data");
+			if (StringUtils.isAnyBlank(ledger.getName(), ledger.getCurrency())) {
+				System.err.println("Error: Enter all the data");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 			}
 			Ledger createdLedger = ledgerService.create(ledger);
 			return ResponseEntity.status(HttpStatus.CREATED).body(createdLedger);
-		} catch (Exception e) {
-			System.err.println("Error:" + e.getMessage());
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Create:" + e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
 	}
@@ -70,26 +75,29 @@ public class LedgerController {
 	@PutMapping("/{id}")
 	public ResponseEntity<Ledger> updateLedger(@PathVariable Long id, @RequestBody Ledger ledger) {
 		// Verify that the data submitted is correct
-		if (StringUtils.isAnyBlank(ledger.getName(), ledger.getCurrency(), ledger.getUser().getName())) {
-	        System.err.println("Enter all the data");
+		if (StringUtils.isAnyBlank(ledger.getName(), ledger.getCurrency())) {
+			System.err.println("Error: Enter all the data");
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 		}
-
-		Ledger updatedLedger = ledgerService.update(id, ledger);
-		if (updatedLedger == null) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		try {
+			Ledger updatedLedger = ledgerService.update(id, ledger);
+			return ResponseEntity.ok(updatedLedger);
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Update: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
-		return ResponseEntity.ok(updatedLedger);
 	}
 
 	// Delete Ledger by ID
 	// DELETE /api/ledgers/{id}
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteLedger(@PathVariable Long id) {
-		boolean deleted = ledgerService.delete(id);
-		if (!deleted) {
-			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		try {
+			ledgerService.delete(id);
+			return ResponseEntity.ok().build();
+		} catch (ResponseStatusException e) {
+			System.err.println("Error Delete: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		}
-		return ResponseEntity.ok().build();
 	}
 }

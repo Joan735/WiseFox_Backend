@@ -28,12 +28,14 @@ public class AuthController {
 			// Basic validation
 			if (StringUtils.isAnyBlank(user.getName(), user.getSurname(), user.getUsername(), user.getEmail(),
 					user.getPassword())) {
+				System.err.println("Error: Enter all the data");
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 			}
 			User createdUser = authService.register(user);
 			return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
 		} catch (ResponseStatusException e) {
-			throw e;
+			System.err.println("Register Error: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
 		} catch (Exception e) {
 			System.err.println("Register Error:" + e.getMessage());
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
@@ -44,15 +46,15 @@ public class AuthController {
 	// POST /api/auth/login
 	@PostMapping("/login")
 	public ResponseEntity<User> loginUser(@RequestBody User user) {
-	    try {
-	        User loginUser = authService.login(user.getEmail(), user.getPassword());
-	        if (loginUser == null) {
-	            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-	        } 
-	        return ResponseEntity.ok(loginUser);
-	    } catch (Exception e) {
-	        System.err.println("Login Error: " + e.getMessage());
-	        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-	    }
+		try {
+			User loginUser = authService.login(user.getEmail(), user.getPassword());
+			return ResponseEntity.ok(loginUser);
+		} catch (ResponseStatusException e) {
+			System.err.println("Login Error: " + e);
+			return ResponseEntity.status(e.getStatusCode()).build();
+		} catch (Exception e) {
+			System.err.println("Login Error: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
 	}
 }
