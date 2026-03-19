@@ -1,5 +1,6 @@
 package WiseFox.Finance.service;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,19 +15,20 @@ import WiseFox.Finance.repository.TransactionRepository;
 
 @Service
 public class TransactionService {
+
 	@Autowired
 	private TransactionRepository transactionRepository;
+
 	@Autowired
 	private LedgerRepository ledgerRepository;
-	
-	// Get all
+
+	// GET ALL — returns empty list if ledger has no transactions
 	public List<Transaction> getAll(Long ledgerId) {
-	    return transactionRepository.findByLedgerId(ledgerId)
-	        .filter(list -> !list.isEmpty()) // Si la lista viene vacía, lanzamos 404
-	        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No transactions found for Ledger ID: " + ledgerId));
+		return transactionRepository.findByLedgerId(ledgerId)
+				.orElse(Collections.emptyList());
 	}
 
-	// Create
+	// CREATE
 	@Transactional
 	public Transaction create(Transaction transaction) {
 		if (transaction.getLedger() == null || transaction.getLedger().getId() == null) {
@@ -38,12 +40,12 @@ public class TransactionService {
 		return transactionRepository.save(transaction);
 	}
 
-	// Delete
+	// DELETE
 	@Transactional
 	public void delete(Long transactionId) {
-	    if (!transactionRepository.existsById(transactionId)) {
-	        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with ID: " + transactionId);
-	    }
-	    transactionRepository.deleteById(transactionId);
+		if (!transactionRepository.existsById(transactionId)) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Transaction not found with ID: " + transactionId);
+		}
+		transactionRepository.deleteById(transactionId);
 	}
 }

@@ -2,6 +2,7 @@ package WiseFox.Finance.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
@@ -11,8 +12,12 @@ import WiseFox.Finance.repository.UserRepository;
 
 @Service
 public class UserService {
+
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	// UPDATE
 	@Transactional
@@ -22,7 +27,15 @@ public class UserService {
 			user.setSurname(userDetails.getSurname());
 			user.setUsername(userDetails.getUsername());
 			user.setEmail(userDetails.getEmail());
-			user.setPassword(userDetails.getPassword());
+
+			// Only re-hash if the password actually changed (not already bcrypt)
+			String newPassword = userDetails.getPassword();
+			if (newPassword != null && !newPassword.startsWith("$2a$") && !newPassword.startsWith("$2b$")) {
+				user.setPassword(passwordEncoder.encode(newPassword));
+			} else if (newPassword != null) {
+				user.setPassword(newPassword);
+			}
+
 			user.setRole(userDetails.getRole());
 			user.setPfp(userDetails.getPfp());
 			return userRepository.save(user);
