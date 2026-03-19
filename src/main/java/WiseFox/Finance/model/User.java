@@ -38,7 +38,7 @@ public class User {
 	private Role role;
 
 	@Lob
-	@Column(nullable = true)
+	@Column(nullable = true, columnDefinition = "MEDIUMBLOB")
 	private byte[] pfp;
 
 	public enum Role {

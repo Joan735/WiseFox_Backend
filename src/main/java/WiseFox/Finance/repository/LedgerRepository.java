@@ -10,5 +10,5 @@ import java.util.Optional;
 @Repository
 public interface LedgerRepository extends CrudRepository<Ledger, Long> {
     Optional<List<Ledger>> findByUserId(Long user_id);
-    boolean existsById(Long id);
+    // existsById is already provided by CrudRepository — no need to redeclare it
 }

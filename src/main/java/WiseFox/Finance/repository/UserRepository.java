@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository;
 import WiseFox.Finance.model.User;
 
 @Repository
-public interface UserRepository extends CrudRepository<User, Long> {	
-	Optional<User> findByUsernameIgnoreCase(String username);
-	boolean existsById(Long id);
+public interface UserRepository extends CrudRepository<User, Long> {
+    Optional<User> findByUsernameIgnoreCase(String username);
+    // existsById is already provided by CrudRepository — no need to redeclare it
 }

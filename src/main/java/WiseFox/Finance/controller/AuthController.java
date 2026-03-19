@@ -3,58 +3,90 @@ package WiseFox.Finance.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import WiseFox.Finance.dto.mapper.AuthMapper;
+import WiseFox.Finance.dto.request.AuthRequest;
+import WiseFox.Finance.dto.response.AuthResponse;
 import WiseFox.Finance.model.User;
 import WiseFox.Finance.service.AuthService;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+
 @RestController
-@RequestMapping("/api/auth") // from url starting with
+@RequestMapping("/api/auth")
 public class AuthController {
-	@Autowired
-	private AuthService authService;
+    
+    @Autowired
+    private AuthService authService;
 
-	// Register User
-	// POST /api/auth/register
-	@PostMapping("/register")
-	public ResponseEntity<User> registerUser(@RequestBody User user) {
-		try {
-			// Basic validation
-			if (StringUtils.isAnyBlank(user.getName(), user.getSurname(), user.getUsername(), user.getEmail(),
-					user.getPassword())) {
-				System.err.println("Error: Enter all the data");
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-			}
-			User createdUser = authService.register(user);
-			return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-		} catch (ResponseStatusException e) {
-			System.err.println("Register Error: " + e);
-			return ResponseEntity.status(e.getStatusCode()).build();
-		} catch (Exception e) {
-			System.err.println("Register Error:" + e.getMessage());
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-		}
-	}
+    // Register
+    @PostMapping(value = "/register", consumes = {"multipart/form-data"})
+    public ResponseEntity<AuthResponse> registerUser(
+            @RequestParam("name") String name,
+            @RequestParam("surname") String surname,
+            @RequestParam("username") String username,
+            @RequestParam("email") String email,
+            @RequestParam("password") String password,
+            @RequestParam(value = "pfpFile", required = false) MultipartFile pfpFile) {
+        
+        try {
+            if (StringUtils.isAnyBlank(name, surname, username, email, password)) {
+                System.err.println("Error: Enter all the data");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+            }
+            
+            User user = new User();
+            user.setName(name);
+            user.setSurname(surname);
+            user.setUsername(username);
+            user.setEmail(email);
+            user.setPassword(password);
+            
+            if (pfpFile != null && !pfpFile.isEmpty()) {
+                String contentType = pfpFile.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                }
+                if (pfpFile.getSize() > 5 * 1024 * 1024) {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+                }
+                user.setPfp(pfpFile.getBytes());
+            }
+            
+            User createdUser = authService.register(user);
+            AuthResponse response = AuthMapper.toResponse(createdUser);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+            
+        } catch (ResponseStatusException e) {
+            System.err.println("Register Error: " + e);
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (IOException e) {
+            System.err.println("File processing error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            System.err.println("Register Error:" + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
 
-	// Login User
-	// POST /api/auth/login
-	@PostMapping("/login")
-	public ResponseEntity<User> loginUser(@RequestBody User user) {
-		try {
-			User loginUser = authService.login(user.getEmail(), user.getPassword());
-			return ResponseEntity.ok(loginUser);
-		} catch (ResponseStatusException e) {
-			System.err.println("Login Error: " + e);
-			return ResponseEntity.status(e.getStatusCode()).build();
-		} catch (Exception e) {
-			System.err.println("Login Error: " + e.getMessage());
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-		}
-	}
+    // login
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> loginUser(@RequestBody AuthRequest request) {
+        try {
+            User loginUser = authService.login(request.getEmail(), request.getPassword());
+            AuthResponse response = AuthMapper.toResponse(loginUser);
+            return ResponseEntity.ok(response);
+        } catch (ResponseStatusException e) {
+            System.err.println("Login Error: " + e);
+            return ResponseEntity.status(e.getStatusCode()).build();
+        } catch (Exception e) {
+            System.err.println("Login Error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+    }
 }
