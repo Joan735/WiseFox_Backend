@@ -14,7 +14,9 @@ import WiseFox.Finance.dto.request.LedgerRequest;
 import WiseFox.Finance.dto.response.LedgerResponse;
 import WiseFox.Finance.model.Ledger;
 import WiseFox.Finance.model.User;
+import WiseFox.Finance.model.UserLedger;
 import WiseFox.Finance.service.LedgerService;
+import WiseFox.Finance.service.UserLedgerService;
 import WiseFox.Finance.service.UserService;
 
 import jakarta.validation.Valid;
@@ -29,6 +31,9 @@ public class LedgerController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserLedgerService userLedgerService;
 
     @GetMapping("user/{user_id}")
     public ResponseEntity<List<LedgerResponse>> getAllLedgers(@PathVariable Long user_id) {
@@ -50,9 +55,18 @@ public class LedgerController {
         if (StringUtils.isAnyBlank(request.getName(), request.getCurrency())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name and currency are required.");
         }
+
+        // 1. Fetch owner and persist the ledger
         User user = userService.getById(request.getUserId());
         Ledger ledger = LedgerMapper.toEntity(request, user);
         Ledger created = ledgerService.create(ledger);
+
+        // 2. Register the creator as OWNER in user_ledger
+        UserLedger userLedger = new UserLedger();
+        userLedger.setUser(user);
+        userLedger.setLedger(created);
+        userLedgerService.create(userLedger); // sets Permission.OWNER internally
+
         return ResponseEntity.status(HttpStatus.CREATED).body(LedgerMapper.toResponse(created));
     }
 

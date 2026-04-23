@@ -11,8 +11,15 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface UserLedgerRepository extends CrudRepository<UserLedger, Long> {
-	boolean existsByUserAndLedger(User user, Ledger ledger);
-	@Modifying
-	@Transactional		
-	void deleteByUserAndLedger(User user, Ledger ledger);
+
+    boolean existsByUserAndLedger(User user, Ledger ledger);
+
+    @Modifying
+    @Transactional
+    void deleteByUserAndLedger(User user, Ledger ledger);
+
+    // Used when deleting a ledger — removes all members/owners of that ledger
+    @Modifying
+    @Transactional
+    void deleteByLedger(Ledger ledger);
 }
