@@ -30,29 +30,41 @@ public class MonthlyReportService {
 	@Autowired
 	private EmailService emailService;
 
-	// Runs at 08:00 on the 1st of every month
+	// Runs at 08:00 on the 1st of every month @Scheduled(cron = "0 0 8 1 * *")
 	// For every 1 min @Scheduled(cron = "0 * * * * *")
 	@Scheduled(cron = "0 0 8 1 * *")
 	public void sendMonthlyReports() {
 		LocalDate today = LocalDate.now();
+		// To test the actual month delete .minusMonths(1)
 		LocalDate firstDay = today.minusMonths(1).withDayOfMonth(1);
 		LocalDate lastDay = firstDay.withDayOfMonth(firstDay.lengthOfMonth());
 		String monthLabel = firstDay.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH) + " "
 				+ firstDay.getYear();
 
+		System.out.println("[MonthlyReport] Starting report for " + monthLabel);
+
 		Iterable<User> users = userRepository.findAll();
 		for (User user : users) {
-			List<Ledger> ledgers = ledgerRepository.findByUserId(user.getId()).orElse(Collections.emptyList());
+			try {
+				List<Ledger> ledgers = ledgerRepository.findByUserId(user.getId()).orElse(Collections.emptyList());
 
-			if (ledgers.isEmpty())
-				continue;
+				if (ledgers.isEmpty())
+					continue;
 
-			List<LedgerSummary> summaries = ledgers.stream().map(l -> buildSummary(l, firstDay, lastDay)).filter(
-					s -> s.totalIncome.compareTo(BigDecimal.ZERO) > 0 || s.totalExpense.compareTo(BigDecimal.ZERO) > 0)
-					.toList();
+				List<LedgerSummary> summaries = ledgers.stream().map(l -> buildSummary(l, firstDay, lastDay))
+						.filter(s -> s.totalIncome().compareTo(BigDecimal.ZERO) > 0
+								|| s.totalExpense().compareTo(BigDecimal.ZERO) > 0)
+						.toList();
 
-			if (!summaries.isEmpty()) {
-				emailService.sendMonthlyReport(user.getEmail(), user.getName(), monthLabel, summaries);
+				System.out.println(
+						"[MonthlyReport] User " + user.getEmail() + " has " + summaries.size() + " non-empty ledgers");
+
+				if (!summaries.isEmpty()) {
+					emailService.sendMonthlyReport(user.getEmail(), user.getName(), monthLabel, summaries);
+					System.out.println("[MonthlyReport] Sent to " + user.getEmail());
+				}
+			} catch (Exception e) {
+				System.out.println("[MonthlyReport] Failed for user " + user.getEmail() + ": " + e.getMessage());
 			}
 		}
 	}
@@ -61,16 +73,20 @@ public class MonthlyReportService {
 	// Build summary for one ledger
 	// -----------------------------------------------------------------------
 	private LedgerSummary buildSummary(Ledger ledger, LocalDate start, LocalDate end) {
-		List<Transaction> txs = transactionRepository.findByLedgerIdAndDateBetween(ledger.getId(), start, end);
+	    List<Transaction> txs = transactionRepository
+	            .findByLedgerIdAndDateBetween(ledger.getId(), start, end);
 
-		BigDecimal income = sum(txs, TransactionType.INCOME);
-		BigDecimal expense = sum(txs, TransactionType.EXPENSE);
+	    BigDecimal income = sum(txs, TransactionType.INCOME);
+	    BigDecimal expense = sum(txs, TransactionType.EXPENSE);
 
-		Map<Category, BigDecimal> byCategory = txs.stream().filter(t -> t.getCategory() != null)
-				.collect(Collectors.groupingBy(Transaction::getCategory,
-						Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)));
+	    Map<Category, BigDecimal> byCategory = txs.stream()
+	            .filter(t -> t.getCategory() != null && t.getType() == TransactionType.EXPENSE) // <-- filtro añadido
+	            .collect(Collectors.groupingBy(
+	                    Transaction::getCategory,
+	                    Collectors.reducing(BigDecimal.ZERO, Transaction::getAmount, BigDecimal::add)
+	            ));
 
-		return new LedgerSummary(ledger.getName(), ledger.getCurrency(), income, expense, byCategory);
+	    return new LedgerSummary(ledger.getName(), ledger.getCurrency(), income, expense, byCategory);
 	}
 
 	private BigDecimal sum(List<Transaction> txs, TransactionType type) {
