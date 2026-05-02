@@ -28,16 +28,24 @@ public class UserService {
 			user.setUsername(userDetails.getUsername());
 			user.setEmail(userDetails.getEmail());
 
-			// Only re-hash if the password actually changed (not already bcrypt)
 			String newPassword = userDetails.getPassword();
-			if (newPassword != null && !newPassword.startsWith("$2a$") && !newPassword.startsWith("$2b$")) {
-				user.setPassword(passwordEncoder.encode(newPassword));
-			} else if (newPassword != null) {
-				user.setPassword(newPassword);
+			if (newPassword != null && !newPassword.isBlank()) {
+				if (!newPassword.startsWith("$2a$") && !newPassword.startsWith("$2b$")) {
+					user.setPassword(passwordEncoder.encode(newPassword));
+				} else {
+					user.setPassword(newPassword);
+				}
+			}
+			// blank/null → password column left unchanged
+
+			if (userDetails.getRole() != null) {
+				user.setRole(userDetails.getRole());
 			}
 
-			user.setRole(userDetails.getRole());
-			user.setPfp(userDetails.getPfp());
+			if (userDetails.getPfp() != null) {
+				user.setPfp(userDetails.getPfp());
+			}
+
 			return userRepository.save(user);
 		}).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cannot update: User not found"));
 	}
