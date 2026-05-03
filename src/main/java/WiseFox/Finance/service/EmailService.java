@@ -23,6 +23,9 @@ public class EmailService {
 	@Value("${spring.mail.username}")
 	private String from;
 
+	// ─────────────────────────────────────────────────────────────────────────
+	// VERIFICATION CODE
+	// ─────────────────────────────────────────────────────────────────────────
 	public void sendVerificationCode(String toEmail, String code) {
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
@@ -59,6 +62,76 @@ public class EmailService {
 				.formatted(code);
 	}
 
+	// ─────────────────────────────────────────────────────────────────────────
+	// LEDGER SHARED NOTIFICATION
+	// ─────────────────────────────────────────────────────────────────────────
+	/**
+	 * Notifies a user that another user has shared a ledger with them.
+	 *
+	 * Throws RuntimeException on failure — the caller's @Transactional will
+	 * roll back the user_ledger insert if this happens.
+	 */
+	public void sendLedgerSharedNotification(
+			String toEmail,
+			String recipientName,
+			String ownerName,
+			String ledgerName) {
+		try {
+			MimeMessage message = mailSender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+			helper.setFrom(from);
+			helper.setTo(toEmail);
+			helper.setSubject("WiseFox — " + ownerName + " shared a ledger with you");
+			helper.setText(buildLedgerSharedHtml(recipientName, ownerName, ledgerName), true);
+
+			mailSender.send(message);
+
+		} catch (MessagingException e) {
+			throw new RuntimeException(
+					"Failed to send ledger-shared email to " + toEmail + ": " + e.getMessage(), e);
+		}
+	}
+
+	private String buildLedgerSharedHtml(String recipientName, String ownerName, String ledgerName) {
+		String safeRecipient = escape(recipientName);
+		String safeOwner     = escape(ownerName);
+		String safeLedger    = escape(ledgerName);
+
+		return """
+				<div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; color:#1a1a1a;">
+				  <h2 style="margin-bottom: 8px;">A ledger was shared with you 🦊</h2>
+				  <p style="color: #555; margin-bottom: 24px;">
+				    Hi %s, <strong>%s</strong> just shared the ledger
+				    <strong>"%s"</strong> with you on WiseFox.
+				  </p>
+				  <div style="background:#fff3cc;border-radius:10px;padding:20px;margin-bottom:24px">
+				    <p style="margin:0;color:#7a5a00;font-size:14px">
+				      You're now a <strong>member</strong> of this ledger.
+				      Open the WiseFox app to view its transactions and add your own.
+				    </p>
+				  </div>
+				  <p style="color: #999; font-size: 12px;">
+				    If you don't recognise the sender you can safely ignore this email —
+				    you can leave any shared ledger from inside the app at any time.
+				  </p>
+				</div>
+				"""
+				.formatted(safeRecipient, safeOwner, safeLedger);
+	}
+
+	/** Minimal HTML escaping for user-supplied strings interpolated into the template. */
+	private String escape(String s) {
+		if (s == null) return "";
+		return s.replace("&", "&amp;")
+				.replace("<", "&lt;")
+				.replace(">", "&gt;")
+				.replace("\"", "&quot;");
+	}
+
+	// ─────────────────────────────────────────────────────────────────────────
+	// MONTHLY REPORT
+	// ─────────────────────────────────────────────────────────────────────────
 	public void sendMonthlyReport(String toEmail, String userName, String monthLabel,
 			List<MonthlyReportService.LedgerSummary> summaries) {
 		try {
