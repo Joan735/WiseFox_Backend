@@ -8,51 +8,57 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import WiseFox.Finance.dto.mapper.UserMapper;
-import WiseFox.Finance.dto.request.UserUpdateRequest;
 import WiseFox.Finance.dto.response.UserResponse;
 import WiseFox.Finance.model.User;
 import WiseFox.Finance.service.UserService;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-    
+
     @Autowired
     private UserService userService;
 
     @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
-            @RequestParam("name") String name,
-            @RequestParam("surname") String surname,
-            @RequestParam("username") String username,
-            @RequestParam("email") String email,
-            @RequestParam("password") String password,
-            @RequestParam(value = "role", required = false) String role,
-            @RequestParam(value = "pfpFile", required = false) MultipartFile pfpFile) {
-        
-        if (StringUtils.isAnyBlank(name, surname, username, email, password)) {
-            System.err.println("Error: Enter all the data");
+            @RequestPart("name")     String name,
+            @RequestPart("surname")  String surname,
+            @RequestPart("username") String username,
+            @RequestPart("email")    String email,
+            @RequestPart(value = "password", required = false) String password,
+            @RequestPart(value = "role",     required = false) String role,
+            @RequestPart(value = "pfpFile",  required = false) MultipartFile pfpFile) {
+
+        if (name == null || name.isBlank() ||
+            surname == null || surname.isBlank() ||
+            username == null || username.isBlank() ||
+            email == null || email.isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        
+
         try {
             User existingUser = userService.getById(id);
-            
-            existingUser.setName(name);
-            existingUser.setSurname(surname);
-            existingUser.setUsername(username);
-            existingUser.setEmail(email);
-            existingUser.setPassword(password);
-            
-            if (role != null) {
-                existingUser.setRole(User.Role.valueOf(role));
+
+            existingUser.setName(name.trim());
+            existingUser.setSurname(surname.trim());
+            existingUser.setUsername(username.trim());
+            existingUser.setEmail(email.trim());
+
+            if (password != null && !password.isBlank()) {
+                existingUser.setPassword(password);
             }
-            
+
+            if (role != null && !role.isBlank()) {
+                try {
+                    existingUser.setRole(User.Role.valueOf(role));
+                } catch (IllegalArgumentException e) {
+                    // unknown role — ignore
+                }
+            }
+
             if (pfpFile != null && !pfpFile.isEmpty()) {
                 String contentType = pfpFile.getContentType();
                 if (contentType == null || !contentType.startsWith("image/")) {
@@ -63,11 +69,11 @@ public class UserController {
                 }
                 existingUser.setPfp(pfpFile.getBytes());
             }
-            
+
             User updatedUser = userService.update(id, existingUser);
             UserResponse response = UserMapper.toResponse(updatedUser);
             return ResponseEntity.ok(response);
-            
+
         } catch (ResponseStatusException e) {
             System.err.println("Error Update: " + e);
             return ResponseEntity.status(e.getStatusCode()).build();
@@ -76,66 +82,49 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         } catch (Exception e) {
             System.err.println("Error Update: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // Delete
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         boolean deleted = userService.delete(id);
-        if (!deleted) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        if (!deleted) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         return ResponseEntity.ok().build();
     }
 
-    // Get by ID
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         try {
             User user = userService.getById(id);
-            UserResponse response = UserMapper.toResponse(user);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(UserMapper.toResponse(user));
         } catch (ResponseStatusException e) {
-            System.err.println("Error Get by id: " + e);
             return ResponseEntity.status(e.getStatusCode()).build();
         } catch (Exception e) {
-            System.err.println("Error Get by id: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    // Get by Username
     @GetMapping("/username/{username}")
     public ResponseEntity<UserResponse> getUserByUsername(@PathVariable String username) {
         try {
             User user = userService.getByUsername(username);
-            UserResponse response = UserMapper.toResponse(user);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(UserMapper.toResponse(user));
         } catch (ResponseStatusException e) {
-            System.err.println("Error Get by username: " + e);
             return ResponseEntity.status(e.getStatusCode()).build();
         } catch (Exception e) {
-            System.err.println("Error Get by username: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    
+
     @GetMapping("/{id}/pfp")
     public ResponseEntity<byte[]> getUserProfilePicture(@PathVariable Long id) {
         try {
             User user = userService.getById(id);
             byte[] pfp = user.getPfp();
-            
-            if (pfp == null || pfp.length == 0) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            }
-            
-            return ResponseEntity.ok()
-                .header("Content-Type", "image/jpeg")
-                .body(pfp);
-                
+            if (pfp == null || pfp.length == 0) return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.ok().header("Content-Type", "image/jpeg").body(pfp);
         } catch (ResponseStatusException e) {
             return ResponseEntity.status(e.getStatusCode()).build();
         }

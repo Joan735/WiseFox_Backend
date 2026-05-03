@@ -4,6 +4,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import WiseFox.Finance.repository.EmailVerificationCodeRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -32,39 +34,55 @@ public class GoogleAuthService {
     private AuthRepository authRepository;
 
     @Autowired
+    private EmailVerificationCodeRepository verificationCodeRepository;
+
+    @Autowired
     private JwtService jwtService;
 
     @Autowired
     private EmailService emailService;
 
     @Autowired
-    private EmailVerificationCodeRepository verificationCodeRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     // -----------------------------------------------------------------------
     // STEP 1 — Frontend sends Google ID token
-    // Returns: JWT if user exists, or VERIFY_REQUIRED if new user
+    // Returns:
+    //   Existing user → { status, token, userId, username, email, name, surname, role }
+    //   New user      → { status: "VERIFY_REQUIRED", email }
     // -----------------------------------------------------------------------
     @Transactional
-    public Map<String, String> handleGoogleLogin(String idToken) {
-        GoogleIdToken.Payload payload = verifyGoogleToken(idToken);
+    public Map<String, String> handleGoogleLogin(String idTokenString) {
+        GoogleIdToken.Payload payload = verifyGoogleToken(idTokenString);
         String email = payload.getEmail();
 
         if (authRepository.existsByEmail(email)) {
             User user = authRepository.findByEmail(email).get();
             String jwt = jwtService.generateToken(user.getId(), user.getEmail());
-            return Map.of("status", "OK", "token", jwt);
+
+            // ✅ Return full user info so Android can save the ID
+            Map<String, String> result = new HashMap<>();
+            result.put("status",   "OK");
+            result.put("token",    jwt);
+            result.put("userId",   String.valueOf(user.getId()));
+            result.put("username", user.getUsername());
+            result.put("email",    user.getEmail());
+            result.put("name",     user.getName());
+            result.put("surname",  user.getSurname());
+            result.put("role",     user.getRole().name());
+            return result;
         } else {
             sendVerificationCode(email);
-            return Map.of("status", "VERIFY_REQUIRED", "email", email);
+            Map<String, String> result = new HashMap<>();
+            result.put("status", "VERIFY_REQUIRED");
+            result.put("email",  email);
+            return result;
         }
     }
 
     // -----------------------------------------------------------------------
     // STEP 2 — Frontend submits the 6-digit code
-    // Returns: a short-lived googleToken that authorizes the registration step
+    // Returns: { googleToken }
     // -----------------------------------------------------------------------
     @Transactional
     public Map<String, String> verifyCode(String email, String code) {
@@ -87,12 +105,15 @@ public class GoogleAuthService {
         verificationCodeRepository.save(record);
 
         String googleToken = jwtService.generateGoogleRegistrationToken(email);
-        return Map.of("googleToken", googleToken);
+
+        Map<String, String> result = new HashMap<>();
+        result.put("googleToken", googleToken);
+        return result;
     }
 
     // -----------------------------------------------------------------------
-    // STEP 3 — Frontend submits registration form + googleToken + password
-    // Returns: full JWT to log the user in
+    // STEP 3 — Frontend submits registration form + googleToken
+    // Returns: { token, userId, username, email, name, surname, role }
     // -----------------------------------------------------------------------
     @Transactional
     public Map<String, String> registerWithGoogle(
@@ -112,7 +133,7 @@ public class GoogleAuthService {
         user.setName(name);
         user.setSurname(surname);
         user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password)); // User can also login with email + this password
+        user.setPassword(passwordEncoder.encode(password));
         user.setRole(User.Role.USER);
 
         User saved = authRepository.save(user);
@@ -120,7 +141,17 @@ public class GoogleAuthService {
         verificationCodeRepository.deleteByEmail(email);
 
         String jwt = jwtService.generateToken(saved.getId(), saved.getEmail());
-        return Map.of("token", jwt);
+
+        // ✅ Return full user info so Android can save the ID after registration
+        Map<String, String> result = new HashMap<>();
+        result.put("token",    jwt);
+        result.put("userId",   String.valueOf(saved.getId()));
+        result.put("username", saved.getUsername());
+        result.put("email",    saved.getEmail());
+        result.put("name",     saved.getName());
+        result.put("surname",  saved.getSurname());
+        result.put("role",     saved.getRole().name());
+        return result;
     }
 
     // -----------------------------------------------------------------------
