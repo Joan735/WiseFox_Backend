@@ -38,16 +38,19 @@ jobs:
 
       - name: Build & run tests
         env:
+          SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/wisefox_test
           SPRING_DATASOURCE_USERNAME: root
           SPRING_DATASOURCE_PASSWORD: root
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_USER_NAME: ${{ secrets.DATABASE_USER_NAME }}
+          DATABASE_USER_PASSWORD: ${{ secrets.DATABASE_USER_PASSWORD }}
+          SECURITY_USER_NAME: ${{ secrets.SECURITY_USER_NAME }}
+          SECURITY_USER_PASSWORD: ${{ secrets.SECURITY_USER_PASSWORD }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
-          SECURITY_USER_NAME: testuser
-          SECURITY_USER_PASSWORD: testpass
         run: ./mvnw verify --no-transfer-progress
 
       - name: Upload test reports
