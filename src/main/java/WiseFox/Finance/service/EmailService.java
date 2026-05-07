@@ -68,13 +68,10 @@ public class EmailService {
 	/**
 	 * Notifies a user that another user has shared a ledger with them.
 	 *
-	 * Throws RuntimeException on failure — the caller's @Transactional will
-	 * roll back the user_ledger insert if this happens.
+	 * Throws RuntimeException on failure — the caller's @Transactional will roll
+	 * back the user_ledger insert if this happens.
 	 */
-	public void sendLedgerSharedNotification(
-			String toEmail,
-			String recipientName,
-			String ownerName,
+	public void sendLedgerSharedNotification(String toEmail, String recipientName, String ownerName,
 			String ledgerName) {
 		try {
 			MimeMessage message = mailSender.createMimeMessage();
@@ -88,15 +85,14 @@ public class EmailService {
 			mailSender.send(message);
 
 		} catch (MessagingException e) {
-			throw new RuntimeException(
-					"Failed to send ledger-shared email to " + toEmail + ": " + e.getMessage(), e);
+			throw new RuntimeException("Failed to send ledger-shared email to " + toEmail + ": " + e.getMessage(), e);
 		}
 	}
 
 	private String buildLedgerSharedHtml(String recipientName, String ownerName, String ledgerName) {
 		String safeRecipient = escape(recipientName);
-		String safeOwner     = escape(ownerName);
-		String safeLedger    = escape(ledgerName);
+		String safeOwner = escape(ownerName);
+		String safeLedger = escape(ledgerName);
 
 		return """
 				<div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 32px; color:#1a1a1a;">
@@ -116,17 +112,17 @@ public class EmailService {
 				    you can leave any shared ledger from inside the app at any time.
 				  </p>
 				</div>
-				"""
-				.formatted(safeRecipient, safeOwner, safeLedger);
+				""".formatted(safeRecipient, safeOwner, safeLedger);
 	}
 
-	/** Minimal HTML escaping for user-supplied strings interpolated into the template. */
+	/**
+	 * Minimal HTML escaping for user-supplied strings interpolated into the
+	 * template.
+	 */
 	private String escape(String s) {
-		if (s == null) return "";
-		return s.replace("&", "&amp;")
-				.replace("<", "&lt;")
-				.replace(">", "&gt;")
-				.replace("\"", "&quot;");
+		if (s == null)
+			return "";
+		return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
 	}
 
 	// ─────────────────────────────────────────────────────────────────────────
@@ -208,5 +204,40 @@ public class EmailService {
 
 	private String capitalize(String s) {
 		return s.charAt(0) + s.substring(1).toLowerCase();
+	}
+
+	public void sendPasswordResetCode(String toEmail, String code) {
+		try {
+			MimeMessage message = mailSender.createMimeMessage();
+			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+			helper.setFrom(from);
+			helper.setTo(toEmail);
+			helper.setSubject("WiseFox — Password Reset Code");
+			helper.setText(buildPasswordResetHtml(code), true);
+
+			mailSender.send(message);
+		} catch (MessagingException e) {
+			throw new RuntimeException("Failed to send reset email: " + e.getMessage(), e);
+		}
+	}
+
+	private String buildPasswordResetHtml(String code) {
+		return """
+				<div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+				  <h2 style="color: #1a1a1a; margin-bottom: 8px;">Reset your password</h2>
+				  <p style="color: #555; margin-bottom: 24px;">
+				    Use the code below to reset your WiseFox password.
+				    It expires in <strong>10 minutes</strong>.
+				  </p>
+				  <div style="background: #f4f4f4; border-radius: 8px; padding: 24px; text-align: center; margin-bottom: 24px;">
+				    <span style="font-size: 36px; font-weight: 700; letter-spacing: 10px; color: #1a1a1a;">%s</span>
+				  </div>
+				  <p style="color: #999; font-size: 13px;">
+				    If you didn't request this, you can safely ignore this email.
+				  </p>
+				</div>
+				"""
+				.formatted(code);
 	}
 }
