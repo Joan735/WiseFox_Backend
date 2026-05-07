@@ -17,7 +17,7 @@ import WiseFox.Finance.model.User;
 import WiseFox.Finance.service.AuthService;
 import WiseFox.Finance.service.GoogleAuthService;
 import WiseFox.Finance.service.JwtService;
-
+import WiseFox.Finance.service.PasswordResetService;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
 
@@ -36,6 +36,9 @@ public class AuthController {
 
     @Autowired
     private JwtService jwtService;
+    
+    @Autowired
+    private PasswordResetService passwordResetService;
 
     // -------------------------------------------------------------------------
     // Standard register
@@ -131,5 +134,36 @@ public class AuthController {
                 request.getSurname(),
                 request.getPassword());
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
+    
+ // ── STEP 1: Send reset code ────────────────────────────────────────────
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(
+            @RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank())
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email is required.");
+        passwordResetService.sendResetCode(email);
+        return ResponseEntity.ok(Map.of("message", "Reset code sent to your email."));
+    }
+
+    // ── PASO 2: Verify code ─────────────────────────────────────────────────
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<Map<String, String>> verifyResetCode(
+            @RequestBody VerifyCodeRequest request) {
+        String resetToken = passwordResetService.verifyResetCode(request.getEmail(), request.getCode());
+        return ResponseEntity.ok(Map.of("resetToken", resetToken));
+    }
+
+    // ── PASO 3: Change password ────────────────────────────────────────────────
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(
+            @RequestBody Map<String, String> body) {
+        String resetToken   = body.get("resetToken");
+        String newPassword  = body.get("newPassword");
+        if (resetToken == null || newPassword == null || newPassword.length() < 6)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid request.");
+        passwordResetService.resetPassword(resetToken, newPassword);
+        return ResponseEntity.ok(Map.of("message", "Password updated successfully."));
     }
 }
