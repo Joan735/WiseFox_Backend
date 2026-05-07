@@ -11,20 +11,6 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: wisefox_test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,10 +24,6 @@ jobs:
 
       - name: Build & run tests
         env:
-          SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/wisefox_test
-          SPRING_DATASOURCE_USERNAME: root
-          SPRING_DATASOURCE_PASSWORD: root
           DATABASE_USER_NAME: ${{ secrets.DATABASE_USER_NAME }}
           DATABASE_USER_PASSWORD: ${{ secrets.DATABASE_USER_PASSWORD }}
           SECURITY_USER_NAME: ${{ secrets.SECURITY_USER_NAME }}
