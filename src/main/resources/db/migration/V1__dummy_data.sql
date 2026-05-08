@@ -4,7 +4,7 @@
 --
 --  10 Users | 22 Ledgers | 33 UserLedgers | 100 Transactions
 --  All currencies with EUR
---  Dates: marzo-abril 2025
+--  Dates: march-april 2025
 --
 --  Everyone password: "password123"
 --  BCrypt: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32
