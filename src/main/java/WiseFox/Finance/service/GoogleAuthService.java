@@ -160,7 +160,7 @@ public class GoogleAuthService {
     private void sendVerificationCode(String email) {
         verificationCodeRepository.deleteByEmail(email);
 
-        String code = String.format("%06d", new Random().nextInt(999999));
+        String code = String.format("%06d", new Random().nextInt(1000000));
 
         EmailVerificationCode record = new EmailVerificationCode();
         record.setEmail(email);
