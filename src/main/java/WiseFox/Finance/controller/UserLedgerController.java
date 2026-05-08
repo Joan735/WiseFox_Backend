@@ -17,6 +17,8 @@ import WiseFox.Finance.service.UserLedgerService;
 import WiseFox.Finance.service.UserService;
 
 import jakarta.validation.Valid;
+
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -116,6 +118,22 @@ public class UserLedgerController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error",
                             "Could not share the ledger. Please try again later."));
+        }
+    }
+    
+ // ── GET MEMBERS BY LEDGER ──────────────────────────────────────────────────
+    @GetMapping("/ledger/{ledgerId}/members")
+    public ResponseEntity<?> getMembersByLedger(@PathVariable Long ledgerId) {
+        try {
+            Ledger ledger = ledgerService.getById(ledgerId);
+            List<UserLedgerResponse> members = userledgerService.getMembersByLedger(ledgerId)
+                    .stream()
+                    .map(UserLedgerMapper::toResponse)
+                    .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(members);
+        } catch (ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode())
+                    .body(Map.of("error", e.getReason() == null ? "" : e.getReason()));
         }
     }
 
