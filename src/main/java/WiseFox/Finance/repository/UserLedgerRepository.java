@@ -16,7 +16,7 @@ public interface UserLedgerRepository extends CrudRepository<UserLedger, Long> {
 
     boolean existsByUserAndLedger(User user, Ledger ledger);
     List<UserLedger> findByLedger(Ledger ledger);
-
+    int countByLedger(Ledger ledger);
     @Modifying
     @Transactional
     void deleteByUserAndLedger(User user, Ledger ledger);
