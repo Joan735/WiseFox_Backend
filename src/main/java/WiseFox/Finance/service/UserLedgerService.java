@@ -5,6 +5,8 @@ import WiseFox.Finance.repository.LedgerRepository;
 import WiseFox.Finance.repository.UserLedgerRepository;
 import WiseFox.Finance.repository.UserRepository;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -131,6 +133,13 @@ public class UserLedgerService {
 		return saved;
 	}
 
+	public List<UserLedger> getMembersByLedger(Long ledgerId) {
+	    Ledger ledger = ledgerRepository.findById(ledgerId)
+	            .orElseThrow(() -> new ResponseStatusException(
+	                    HttpStatus.NOT_FOUND, "Ledger not found"));
+	    return userLedgerRepository.findByLedger(ledger);
+	}
+	
 	// ─────────────────────────────────────────────────────────────────────────
 	// DELETE
 	// ─────────────────────────────────────────────────────────────────────────
