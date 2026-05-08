@@ -1,6 +1,6 @@
 -- ============================================================
 --  WiseFox – Dummy Data
---  Flyway migration: V1__dummy_data.sql
+--  File: data.sql
 --
 --  10 Users | 22 Ledgers | 33 UserLedgers | 100 Transactions
 --  All currencies with EUR
@@ -15,7 +15,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ============================================================
 -- USERS
 -- ============================================================
-INSERT INTO `user` (id, name, surname, username, email, password, role, pfp) VALUES
+INSERT IGNORE INTO `user` (id, name, surname, username, email, password, role, pfp) VALUES
 (1,  'Alice',  'Martin',   'alice_m',  'alice@wisefox.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
 (2,  'Bob',    'Johnson',  'bob_j',    'bob@wisefox.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
 (3,  'Carlos', 'Garcia',   'carlos_g', 'carlos@wisefox.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'PREMIUM', NULL),
@@ -28,7 +28,7 @@ INSERT INTO `user` (id, name, surname, username, email, password, role, pfp) VAL
 (10, 'Julia',  'White',    'julia_w',  'julia@wisefox.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'PREMIUM', NULL);
 
 -- ============================================================
--- LEDGERS  (todos EUR)
+-- LEDGERS  (all EUR)
 -- Alice (1):  1,2 solo  | 3  shared owner
 -- Bob (2):    4   solo  | 5  shared owner
 -- Carlos (3): 6,7 solo  | 8  shared owner
@@ -40,7 +40,7 @@ INSERT INTO `user` (id, name, surname, username, email, password, role, pfp) VAL
 -- Ivan (9):   19,20 solo | 21 shared owner
 -- Julia (10): 22  solo  | member en 17, 21
 -- ============================================================
-INSERT INTO ledger (id, name, currency, description, user_id) VALUES
+INSERT IGNORE INTO ledger (id, name, currency, description, user_id) VALUES
 ( 1, 'Alice Personal',         'EUR', 'Gastos personales de Alice',       1),
 ( 2, 'Alice Savings',          'EUR', 'Ahorro mensual de Alice',          1),
 ( 3, 'Alice & Bob Household',  'EUR', 'Gastos del hogar compartido',      1),
@@ -67,7 +67,7 @@ INSERT INTO ledger (id, name, currency, description, user_id) VALUES
 -- ============================================================
 -- USER_LEDGER
 -- ============================================================
-INSERT INTO user_ledger (id, user_id, ledger_id, permission) VALUES
+INSERT IGNORE INTO user_ledger (id, user_id, ledger_id, permission) VALUES
 (1,  1,  1, 'OWNER'),
 (2,  1,  2, 'OWNER'),
 (3,  1,  3, 'OWNER'),
@@ -103,11 +103,11 @@ INSERT INTO user_ledger (id, user_id, ledger_id, permission) VALUES
 (33,10, 22, 'OWNER');
 
 -- ============================================================
--- TRANSACTIONS (100 registros)
+-- TRANSACTIONS (100 transactions)
 -- ============================================================
 
 -- Ledger 1: Alice Personal
-INSERT INTO `transaction` (id, amount, type, category, date, note, ledger_id) VALUES
+INSERT IGNORE INTO `transaction` (id, amount, type, category, date, note, ledger_id) VALUES
 (1,  1800.00, 'INCOME',  'SALARY',        '2025-03-01', 'Nomina marzo',             1),
 (2,   320.00, 'EXPENSE', 'RENT',          '2025-03-05', 'Alquiler habitacion',      1),
 (3,    85.50, 'EXPENSE', 'FOOD',          '2025-03-10', 'Compra supermercado',      1),
