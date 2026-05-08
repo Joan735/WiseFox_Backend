@@ -33,8 +33,9 @@ jobs:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_PASSWORD: ${{ secrets.GMAIL_PASSWORD }}
-        run: ./mvnw verify --no-transfer-progress
-
+       run: |
+          chmod +x mvnw
+          ./mvnw verify --no-transfer-progress
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
