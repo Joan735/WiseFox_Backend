@@ -60,4 +60,6 @@ jobs:
           cache: maven
 
       - name: Check for compilation warnings
-        run: ./mvnw compile -Dmaven.compiler.showWarnings=true --no-transfer-progress -DskipTests
+        run: |
+          chmod +x mvnw
+          ./mvnw compile -Dmaven.compiler.showWarnings=true --no-transfer-progress -DskipTests
