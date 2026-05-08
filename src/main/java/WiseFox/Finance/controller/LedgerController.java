@@ -11,10 +11,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import WiseFox.Finance.dto.mapper.LedgerMapper;
 import WiseFox.Finance.dto.request.LedgerRequest;
+import WiseFox.Finance.dto.request.LedgerSharedRequest;
 import WiseFox.Finance.dto.response.LedgerResponse;
 import WiseFox.Finance.model.Ledger;
 import WiseFox.Finance.model.User;
 import WiseFox.Finance.model.UserLedger;
+import WiseFox.Finance.repository.UserLedgerRepository;
 import WiseFox.Finance.service.LedgerService;
 import WiseFox.Finance.service.UserLedgerService;
 import WiseFox.Finance.service.UserService;
@@ -34,12 +36,16 @@ public class LedgerController {
 
     @Autowired
     private UserLedgerService userLedgerService;
+    
+    @Autowired
+    private UserLedgerRepository userLedgerRepository;
 
     @GetMapping("user/{user_id}")
     public ResponseEntity<List<LedgerResponse>> getAllLedgers(@PathVariable Long user_id) {
         List<Ledger> ledgers = ledgerService.getMyLedgers(user_id);
         List<LedgerResponse> responses = ledgers.stream()
-                .map(LedgerMapper::toResponse)
+                .map(l -> LedgerMapper.toResponse(l,
+                        userLedgerRepository.countByLedger(l)))
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
     }
@@ -66,6 +72,50 @@ public class LedgerController {
         userLedger.setUser(user);
         userLedger.setLedger(created);
         userLedgerService.create(userLedger); // sets Permission.OWNER internally
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(LedgerMapper.toResponse(created));
+    }
+    
+    @PostMapping("/create-shared")
+    public ResponseEntity<?> createSharedLedger(@Valid @RequestBody LedgerSharedRequest request) {
+        if (StringUtils.isAnyBlank(request.getName(), request.getCurrency())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Name and currency are required.");
+        }
+        if (request.getMemberUsernames() == null || request.getMemberUsernames().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one member username is required.");
+        }
+
+        // 1. 验证所有成员用户名存在（提前全部校验，避免部分成功）
+        List<User> members = new java.util.ArrayList<>();
+        for (String username : request.getMemberUsernames()) {
+            try {
+                User member = userService.getByUsername(username);
+                members.add(member);
+            } catch (ResponseStatusException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User not found: " + username);
+            }
+        }
+
+        // 2. 创建账本
+        User owner = userService.getById(request.getUserId());
+        Ledger ledger = new Ledger();
+        ledger.setName(request.getName());
+        ledger.setCurrency(request.getCurrency());
+        ledger.setDescription(request.getDescription());
+        ledger.setUser(owner);
+        Ledger created = ledgerService.create(ledger);
+
+        // 3. 注册 owner
+        UserLedger ownerEntry = new UserLedger();
+        ownerEntry.setUser(owner);
+        ownerEntry.setLedger(created);
+        userLedgerService.create(ownerEntry);
+
+        // 4. 注册所有 members 并发送邮件通知
+        for (User member : members) {
+            userLedgerService.shareByEmail(owner.getId(), created.getId(), member.getEmail());
+        }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(LedgerMapper.toResponse(created));
     }
