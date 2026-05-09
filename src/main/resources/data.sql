@@ -8,15 +8,26 @@
 --
 --  Everyone password: "password123"
 --  BCrypt: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32
+--
+--  Business rule:
+--    Only PREMIUM users can OWN a shared ledger.
+--    Non-PREMIUM (USER) accounts cannot create shared ledgers,
+--    but they CAN be invited as MEMBER by a PREMIUM owner.
+--
+--  Premium owners in this seed: Alice (1), Carlos (3), Fiona (6), Julia (10)
 -- ============================================================
 
 SET FOREIGN_KEY_CHECKS = 0;
 
 -- ============================================================
 -- USERS
+--   Alice promoted to PREMIUM (owns shared ledger 3 with Bob).
+--   Carlos, Fiona and Julia stay PREMIUM.
+--   The rest remain plain USER and only appear in shared ledgers
+--   as MEMBER (invited by a PREMIUM owner).
 -- ============================================================
 INSERT IGNORE INTO `user` (id, name, surname, username, email, password, role, pfp) VALUES
-(1,  'Alice',  'Martin',   'alice_m',  'alice@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(1,  'Alice',  'Martin',   'alice_m',  'alice@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'PREMIUM', NULL),
 (2,  'Bob',    'Johnson',  'bob_j',    'bob@wisefox.com',    '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
 (3,  'Carlos', 'Garcia',   'carlos_g', 'carlos@wisefox.com', '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'PREMIUM', NULL),
 (4,  'Diana',  'Smith',    'diana_s',  'diana@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
@@ -29,78 +40,120 @@ INSERT IGNORE INTO `user` (id, name, surname, username, email, password, role, p
 
 -- ============================================================
 -- LEDGERS  (all EUR)
--- Alice (1):  1,2 solo  | 3  shared owner
--- Bob (2):    4   solo  | 5  shared owner
--- Carlos (3): 6,7 solo  | 8  shared owner
--- Diana (4):  9   solo  | 10 shared owner
--- Ethan (5):  11,12 solo | member en 10
--- Fiona (6):  13  solo  | 14 shared owner
--- George (7): 15,16 solo | 17 shared owner
--- Hannah (8): 18  solo  | member en 14, 17
--- Ivan (9):   19,20 solo | 21 shared owner
--- Julia (10): 22  solo  | member en 17, 21
+--
+-- Solo ledgers (any user can have these):
+--   Alice (1):   1, 2
+--   Bob (2):     4
+--   Carlos (3):  6, 7
+--   Diana (4):   9
+--   Ethan (5):   11, 12
+--   Fiona (6):   13
+--   George (7):  15, 16
+--   Hannah (8):  18
+--   Ivan (9):    19, 20
+--   Julia (10):  22
+--
+-- Shared ledgers (owner MUST be PREMIUM):
+--    3  Alice (1, PREMIUM)  + member Bob
+--    5  Carlos (3, PREMIUM) + members Bob, Diana   [previously owned by Bob]
+--    8  Carlos (3, PREMIUM) + member Diana
+--   10  Carlos (3, PREMIUM) + members Diana, Ethan [previously owned by Diana]
+--   14  Fiona (6, PREMIUM)  + members George, Hannah
+--   17  Fiona (6, PREMIUM)  + members George, Hannah, Julia [previously owned by George]
+--   21  Julia (10, PREMIUM) + members Ivan, Bob    [previously owned by Ivan]
 -- ============================================================
 INSERT IGNORE INTO ledger (id, name, currency, description, user_id) VALUES
 ( 1, 'Alice Personal',         'EUR', 'Gastos personales de Alice',       1),
 ( 2, 'Alice Savings',          'EUR', 'Ahorro mensual de Alice',          1),
 ( 3, 'Alice & Bob Household',  'EUR', 'Gastos del hogar compartido',      1),
 ( 4, 'Bob Personal',           'EUR', 'Gastos personales de Bob',         2),
-( 5, 'Bob & Carlos Trip',      'EUR', 'Viaje de verano compartido',       2),
+( 5, 'Bob & Carlos Trip',      'EUR', 'Viaje de verano compartido',       3),
 ( 6, 'Carlos Personal',        'EUR', 'Gastos personales de Carlos',      3),
 ( 7, 'Carlos Business',        'EUR', 'Gastos de negocio de Carlos',      3),
 ( 8, 'Carlos & Diana Family',  'EUR', 'Gastos familiares compartidos',    3),
 ( 9, 'Diana Personal',         'EUR', 'Gastos personales de Diana',       4),
-(10, 'Diana & Ethan Gym',      'EUR', 'Cuota y gastos del gimnasio',      4),
+(10, 'Diana & Ethan Gym',      'EUR', 'Cuota y gastos del gimnasio',      3),
 (11, 'Ethan Personal',         'EUR', 'Gastos personales de Ethan',       5),
 (12, 'Ethan Side Projects',    'EUR', 'Ingresos y gastos de proyectos',   5),
 (13, 'Fiona Personal',         'EUR', 'Gastos personales de Fiona',       6),
 (14, 'Fiona & George Rent',    'EUR', 'Alquiler y suministros del piso',  6),
 (15, 'George Personal',        'EUR', 'Gastos personales de George',      7),
 (16, 'George Investments',     'EUR', 'Seguimiento de inversiones',       7),
-(17, 'George & Hannah Travel', 'EUR', 'Fondo de viajes compartido',       7),
+(17, 'George & Hannah Travel', 'EUR', 'Fondo de viajes compartido',       6),
 (18, 'Hannah Personal',        'EUR', 'Gastos personales de Hannah',      8),
 (19, 'Ivan Personal',          'EUR', 'Gastos personales de Ivan',        9),
 (20, 'Ivan Freelance',         'EUR', 'Ingresos y gastos freelance',      9),
-(21, 'Ivan & Julia Events',    'EUR', 'Eventos y ocio compartido',        9),
+(21, 'Ivan & Julia Events',    'EUR', 'Eventos y ocio compartido',       10),
 (22, 'Julia Personal',         'EUR', 'Gastos personales de Julia',      10);
 
 -- ============================================================
 -- USER_LEDGER
+--   Every shared ledger has exactly one OWNER, who is PREMIUM.
+--   All other participants are MEMBER (can be plain USER).
 -- ============================================================
 INSERT IGNORE INTO user_ledger (id, user_id, ledger_id, permission) VALUES
+-- Alice's solo + her shared household (PREMIUM owner)
 (1,  1,  1, 'OWNER'),
 (2,  1,  2, 'OWNER'),
 (3,  1,  3, 'OWNER'),
 (4,  2,  3, 'MEMBER'),
+
+-- Bob's solo + memberships in shared ledgers
 (5,  2,  4, 'OWNER'),
-(6,  2,  5, 'OWNER'),
-(7,  3,  5, 'MEMBER'),
+
+-- Bob & Carlos Trip — owner is now Carlos (PREMIUM); Bob and Diana are members
+(6,  3,  5, 'OWNER'),
+(7,  2,  5, 'MEMBER'),
 (8,  4,  5, 'MEMBER'),
+
+-- Carlos's solo ledgers + Carlos & Diana Family (PREMIUM owner)
 (9,  3,  6, 'OWNER'),
 (10, 3,  7, 'OWNER'),
 (11, 3,  8, 'OWNER'),
 (12, 4,  8, 'MEMBER'),
+
+-- Diana's solo
 (13, 4,  9, 'OWNER'),
-(14, 4, 10, 'OWNER'),
-(15, 5, 10, 'MEMBER'),
+
+-- Diana & Ethan Gym — owner is now Carlos (PREMIUM); Diana and Ethan are members
+(14, 3, 10, 'OWNER'),
+(15, 4, 10, 'MEMBER'),
+(34, 5, 10, 'MEMBER'),
+
+-- Ethan's solo ledgers
 (16, 5, 11, 'OWNER'),
 (17, 5, 12, 'OWNER'),
+
+-- Fiona's solo + Fiona & George Rent (PREMIUM owner)
 (18, 6, 13, 'OWNER'),
 (19, 6, 14, 'OWNER'),
 (20, 7, 14, 'MEMBER'),
 (21, 8, 14, 'MEMBER'),
+
+-- George's solo ledgers
 (22, 7, 15, 'OWNER'),
 (23, 7, 16, 'OWNER'),
-(24, 7, 17, 'OWNER'),
-(25, 8, 17, 'MEMBER'),
-(26,10, 17, 'MEMBER'),
-(27, 8, 18, 'OWNER'),
-(28, 9, 19, 'OWNER'),
-(29, 9, 20, 'OWNER'),
-(30, 9, 21, 'OWNER'),
-(31,10, 21, 'MEMBER'),
-(32, 2, 21, 'MEMBER'),
-(33,10, 22, 'OWNER');
+
+-- George & Hannah Travel — owner is now Fiona (PREMIUM); George, Hannah, Julia are members
+(24, 6, 17, 'OWNER'),
+(25, 7, 17, 'MEMBER'),
+(26, 8, 17, 'MEMBER'),
+(27,10, 17, 'MEMBER'),
+
+-- Hannah's solo
+(28, 8, 18, 'OWNER'),
+
+-- Ivan's solo ledgers
+(29, 9, 19, 'OWNER'),
+(30, 9, 20, 'OWNER'),
+
+-- Ivan & Julia Events — owner is now Julia (PREMIUM); Ivan and Bob are members
+(31,10, 21, 'OWNER'),
+(32, 9, 21, 'MEMBER'),
+(33, 2, 21, 'MEMBER'),
+
+-- Julia's solo
+(35,10, 22, 'OWNER');
 
 -- ============================================================
 -- TRANSACTIONS (100 transactions)
