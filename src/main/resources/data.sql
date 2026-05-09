@@ -16,16 +16,16 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- USERS
 -- ============================================================
 INSERT IGNORE INTO `user` (id, name, surname, username, email, password, role, pfp) VALUES
-(1,  'Alice',  'Martin',   'alice_m',  'alice@wisefox.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
-(2,  'Bob',    'Johnson',  'bob_j',    'bob@wisefox.com',    '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
-(3,  'Carlos', 'Garcia',   'carlos_g', 'carlos@wisefox.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'PREMIUM', NULL),
-(4,  'Diana',  'Smith',    'diana_s',  'diana@wisefox.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
-(5,  'Ethan',  'Brown',    'ethan_b',  'ethan@wisefox.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
-(6,  'Fiona',  'Wilson',   'fiona_w',  'fiona@wisefox.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'PREMIUM', NULL),
-(7,  'George', 'Taylor',   'george_t', 'george@wisefox.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
-(8,  'Hannah', 'Anderson', 'hannah_a', 'hannah@wisefox.com', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
-(9,  'Ivan',   'Thomas',   'ivan_t',   'ivan@wisefox.com',   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'USER',    NULL),
-(10, 'Julia',  'White',    'julia_w',  'julia@wisefox.com',  '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32', 'PREMIUM', NULL);
+(1,  'Alice',  'Martin',   'alice_m',  'alice@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(2,  'Bob',    'Johnson',  'bob_j',    'bob@wisefox.com',    '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(3,  'Carlos', 'Garcia',   'carlos_g', 'carlos@wisefox.com', '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'PREMIUM', NULL),
+(4,  'Diana',  'Smith',    'diana_s',  'diana@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(5,  'Ethan',  'Brown',    'ethan_b',  'ethan@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(6,  'Fiona',  'Wilson',   'fiona_w',  'fiona@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'PREMIUM', NULL),
+(7,  'George', 'Taylor',   'george_t', 'george@wisefox.com', '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(8,  'Hannah', 'Anderson', 'hannah_a', 'hannah@wisefox.com', '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(9,  'Ivan',   'Thomas',   'ivan_t',   'ivan@wisefox.com',   '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'USER',    NULL),
+(10, 'Julia',  'White',    'julia_w',  'julia@wisefox.com',  '$2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi', 'PREMIUM', NULL);
 
 -- ============================================================
 -- LEDGERS  (all EUR)
