@@ -24,6 +24,7 @@ jobs:
 
       - name: Build & run tests
         env:
+          DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
           DATABASE_USER_NAME: ${{ secrets.DATABASE_USER_NAME }}
           DATABASE_USER_PASSWORD: ${{ secrets.DATABASE_USER_PASSWORD }}
           SECURITY_USER_NAME: ${{ secrets.SECURITY_USER_NAME }}
