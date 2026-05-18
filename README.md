@@ -255,4 +255,4 @@ The project includes a **GitHub Actions** pipeline (`.github/workflows/ci.yml`) 
 
 ---
 
-*WiseFox Backend — Smart money, clever moves 🦊*
+*WiseFox Backend — Track Smart, Live Wisely. 🦊*
