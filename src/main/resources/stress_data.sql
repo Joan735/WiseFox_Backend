@@ -1,5 +1,5 @@
 -- ============================================================
---  WiseFox - Stress Testing Script (Dynamic ID)
+--  WiseFox - Stress Testing Script (Dynamic IDs)
 --  30 users | 60 ledgers | 60 user_ledger | 1500 transactions
 -- ============================================================
 
