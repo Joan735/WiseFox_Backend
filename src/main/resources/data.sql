@@ -7,7 +7,7 @@
 --  Dates: march-april 2025
 --
 --  Everyone password: "password123"
---  BCrypt: $2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lh32
+--  BCrypt: $2a$10$fLLyHJOdMKAcnU8O6oxJmOSLU65VJSTketirHnPSDfDNlTdSonBdi
 --
 --  Business rule:
 --    Only PREMIUM users can OWN a shared ledger.
