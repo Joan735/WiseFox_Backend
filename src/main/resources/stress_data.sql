@@ -1792,7 +1792,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 SET UNIQUE_CHECKS      = 1;
 
 -- VERIFY
-SELECT 'users' AS table_name, COUNT(*) AS total FROM `user` WHERE username LIKE 'stress_%'
+SELECT 'users' AS table_name, COUNT(*) AS stress_count FROM `user` WHERE username LIKE 'stress_%'
 UNION ALL SELECT 'ledgers', COUNT(*) FROM ledger WHERE name LIKE 'Personal-%' OR name LIKE 'Savings-%'
-UNION ALL SELECT 'user_ledger', COUNT(*) FROM user_ledger WHERE permission = 'OWNER'
+UNION ALL SELECT 'user_ledger', COUNT(*) FROM user_ledger ul JOIN `user` u ON ul.user_id = u.id WHERE u.username LIKE 'stress_%'
 UNION ALL SELECT 'transactions', COUNT(*) FROM `transaction` WHERE note LIKE 'Stress transaction%';
